@@ -1,5 +1,15 @@
 # Verification — milk-sale-tracker
 
+## Latest verification (2026-10-26)
+
+- The full existing instrumented suite ran directly on `emulator-5554`: all
+  fourteen tests passed together (`BUILD SUCCESSFUL in 34s`).
+- Added two isolated `OcrConfirmationTest` cases for correction before save,
+  mismatch display, blank unrecognized fields, and validation on confirmation.
+  Both passed on a separate fresh API 37 emulator (`BUILD SUCCESSFUL in 13s`).
+  Its Room fixtures are in memory. This verifies task 5.4 without changing
+  the user's stored milk entries.
+
 ## Recorded results
 
 - On 2026-10-26, Codex ran
@@ -133,7 +143,7 @@ Source:
 
 | Tasks | Check on device |
 | --- | --- |
-| 5.3–5.5 | Camera permission grant/denial, camera cancellation, image capture, partial/no OCR data, editable confirmation, retake, manual fallback, and confirmed save work. |
+| 5.3, 5.5 | Verify camera permission grant/denial, cancellation, capture, OCR, retake/manual fallback, and the complete confirmed-save flow. Editable confirmation and partial-field validation have passed. |
 | 6.4 | Verify navigation from a summary day into its morning/evening details. Monthly/weekly totals, period navigation, daily missing-shift indicators and selection callbacks, and comparison/no-prior-data views passed. |
 | 7.3 | Verify tapping a History entry opens its prefilled editor in the complete app. Room-backed History rows, newest-day ordering, and the correct edit-selection callback have passed. |
 | 8.1–8.3 | Permission denial disables reminders; times persist; exact/inexact alarms schedule; missing shifts notify; logged shifts suppress; notification tap opens the correct shift; reboot/timezone changes reschedule. |
