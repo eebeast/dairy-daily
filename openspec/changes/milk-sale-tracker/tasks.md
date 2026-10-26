@@ -44,14 +44,14 @@
 - [x] 6.1 Create `SummaryViewModel` in `ui/summary/SummaryViewModel.kt` exposing: current period (month/week), summary data (`MilkSummary`), daily breakdown list, comparison data (current vs previous month). Navigate between periods. Verify compilation.
 - [x] 6.2 Create `SummaryScreen` in `ui/summary/SummaryScreen.kt` with monthly view: total liters, total earnings, average FAT, average SNF, average rate, entry count, missed days. Add period navigation (previous/next month arrows). Apply Material Design 3 cards. Verify monthly summary displays correctly with sample data.
 - [x] 6.3 Add weekly summary tab: same aggregate fields scoped to Monday–Sunday. Add tab or toggle to switch between monthly and weekly views. Verify weekly aggregation and navigation.
-- [ ] 6.4 Add daily breakdown: tappable list of days within selected month showing each day's total. Tap a day to see morning/evening entries. Show indicator for days with missing shifts. Verify drill-down navigation works.
+- [x] 6.4 Add daily breakdown: tappable list of days within selected month showing each day's total. Tap a day to see morning/evening entries. Show indicator for days with missing shifts. Verify drill-down navigation works.
 - [x] 6.5 Add month comparison: button on monthly summary to show current vs previous month side by side with differences (liters, earnings, averages). Handle case where no previous data exists (show message). Verify comparison renders with and without prior data.
 
 ## 7. Home Screen and Navigation
 
 - [x] 7.1 Set up Jetpack Navigation Compose with bottom navigation bar: Home, History, Summary, Settings. Create `NavHost` with routes for each screen. Verify navigation between all tabs works.
 - [x] 7.2 Create Home screen: show today's entries (morning, evening — with status for each), quick-add buttons ("Add Entry" and "Scan Slip"), month-to-date summary card (total liters, total earned). Verify home screen renders with and without today's entries.
-- [ ] 7.3 Create History screen: scrollable list of entries grouped by date (newest first). Each item shows date, shift, quantity, rate, total. Tap to edit. Verify list populates from Room and edit navigation works.
+- [x] 7.3 Create History screen: scrollable list of entries grouped by date (newest first). Each item shows date, shift, quantity, rate, total. Tap to edit. Verify list populates from Room and edit navigation works.
 
 ## 8. Notifications — Entry Reminders
 

@@ -9,6 +9,12 @@
   Both passed on a separate fresh API 37 emulator (`BUILD SUCCESSFUL in 13s`).
   Its Room fixtures are in memory. This verifies task 5.4 without changing
   the user's stored milk entries.
+- On the disposable emulator with airplane mode enabled, saved a morning
+  entry (5.2 L, FAT 6.5, SNF 8.8, rate ₹38.50). Home and History displayed
+  ₹200.20. History's Edit action opened the prefilled editor with Update.
+  Selecting October 26 from the monthly summary opened Daily entries with
+  that morning record and “No evening entry recorded.” This verifies 6.4
+  and 7.3 through the production navigation and Room database.
 
 ## Recorded results
 
@@ -144,8 +150,6 @@ Source:
 | Tasks | Check on device |
 | --- | --- |
 | 5.3, 5.5 | Verify camera permission grant/denial, cancellation, capture, OCR, retake/manual fallback, and the complete confirmed-save flow. Editable confirmation and partial-field validation have passed. |
-| 6.4 | Verify navigation from a summary day into its morning/evening details. Monthly/weekly totals, period navigation, daily missing-shift indicators and selection callbacks, and comparison/no-prior-data views passed. |
-| 7.3 | Verify tapping a History entry opens its prefilled editor in the complete app. Room-backed History rows, newest-day ordering, and the correct edit-selection callback have passed. |
 | 8.1–8.3 | Permission denial disables reminders; times persist; exact/inexact alarms schedule; missing shifts notify; logged shifts suppress; notification tap opens the correct shift; reboot/timezone changes reschedule. |
 | 9.1 | Complete the manual integration flow below and record actual results. |
 
