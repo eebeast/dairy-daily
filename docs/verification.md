@@ -37,169 +37,94 @@
   Re-enabling restored both alarms with the custom time. Rebooting the emulator
   restored both alarms without opening the app. Tasks 8.1 and 8.3 pass.
 
-## Recorded results
+- Actual scheduled alarms fired for both saved October 26 shifts and rearmed
+  for the next day without posting a notification. Advancing to October 27
+  6:30 AM produced notification 100 for its missing morning entry. Tapping
+  “Log your morning milk sale” opened Add entry dated October 27 with Morning
+  selected. This verifies 8.2 and completes the manual integration flow (9.1).
 
-- On 2026-10-26, Codex ran
-  `./gradlew :app:assembleDebug :app:testDebugUnitTest --offline` with Java 21.
-  Gradle reported `BUILD SUCCESSFUL in 4s`; the unit-test XML reports confirm
-  32 tests, zero failures, and zero errors.
+## Manual integration results
 
-- The original Android scaffold built successfully in the user's terminal and
-  the user confirmed that its empty Compose activity opened on the emulator.
-- After feature implementation, the user ran
-  `./gradlew :app:assembleDebug :app:testDebugUnitTest` locally and reported
-  `BUILD SUCCESSFUL in 15s`. The updated APK assembly and Gradle unit-test task
-  passed.
-- Current application, unit-test, and instrumented-test Kotlin sources compiled
-  with Kotlin 2.1.0, the Compose compiler plugin, and Java 21 using cached
-  dependencies directly.
-- All 32 JVM tests passed. They cover model/entity mapping, converters,
-  aggregation, validation boundaries, duplicate rejection (including a database
-  race), edit behavior, form state, OCR parsing, exact decimal mismatch
-  comparison, reminder boundaries, and daylight-saving transitions.
-- Current Android resources compiled and linked against API 35 with AAPT2.
-- Room's KSP processor generated the database, DAO, and version 1 schema.
-- Hilt/Dagger's KSP processors generated the full application dependency graph.
-  All 68 generated Java sources compiled. Room-generated `finalize()` usage
-  produces deprecation warnings in Java 21.
-- `openspec validate milk-sale-tracker --type change --strict --json` passed
-  without issues. This CLI uses a positional change name; `--change` is not
-  supported by its validate command.
+Executed on 2026-10-26 using a fresh disposable API 37 emulator. The emulator's
+camera used a synthetic English slip image. Airplane mode remained enabled
+through entry, OCR, history, summary, and reminder checks. The user's emulator
+and stored entries were not changed by this manual flow.
 
-The local Gradle run verifies APK assembly and the unit-test task in addition to
-the direct compiler checks. All fourteen instrumented cases have since passed
-on the API 37 emulator across the recorded full and targeted runs below. The
-latest targeted Ledger run passed all three cases. A full-suite rerun after the
-final lifecycle-rule update, and the device behaviors listed in the pending
-table, remain unverified.
+| Check | Observed result |
+| --- | --- |
+| Notification permission denied | Settings showed reminders disabled; entry remained available. |
+| Camera permission denied | Explanation, Open app settings, and Enter manually were available. |
+| Morning manual entry | 5.2 L, FAT 6.5, SNF 8.8, rate ₹38.50 saved for October 26, total ₹200.20. |
+| Camera capture and recognition | Native camera captured 4.8 L, FAT 6.5, SNF 8.8, rate ₹38, total ₹182.40; confirmation displayed the recognized values and matching total. |
+| Retake and cancellation | Retake opened the native camera; cancelling returned Home without an evening entry. |
+| Evening confirmed save | A second capture saved the evening entry, total ₹182.40. |
+| Home and monthly Summary | Both showed 10.00 L and ₹382.60; Summary showed two entries. |
+| History editing | Edit opened the saved morning values with Update. |
+| Daily breakdown | Selecting October 26 opened the morning entry and missing-evening indicator before the evening save. |
+| Reminder configuration | Defaults 7 AM/7 PM; custom morning 6:30 AM applied from tomorrow; disabling removed pending alarms; state survived process restart. |
+| Alarm permission | Android alarm records showed inexact fallback, then exact alarms after granting access. |
+| Reboot | Both alarms returned without opening the app. |
+| Saved-shift suppression | October 26 morning and evening alarms fired, rearmed for the next day, and posted no notification. |
+| Missing-shift reminder and tap | October 27 morning alarm posted the reminder; tapping it opened the October 27 Morning form. |
 
-## Run locally
+Alarm checks advanced the disposable emulator clock to five seconds before
+each trigger, waited for delivery, and inspected both pending alarms and
+active notifications. The clock was restored afterward. No production-only
+test hook, synthetic broadcast, or sale deletion was needed.
+
+## Automated verification
+
+Final combined Gradle run on the disposable API 37 emulator passed in 31 seconds:
+APK assembly, all 32 JVM tests, and all 17 instrumented tests. The XML reports
+contain zero failures, errors, or skipped tests. OpenSpec reports 37/37 tasks
+complete.
+
+Run with Java 21:
 
 ```sh
 ./gradlew :app:assembleDebug :app:testDebugUnitTest
 ./gradlew :app:connectedDebugAndroidTest
+openspec validate milk-sale-tracker --type change --strict --json
 ```
 
-The second command requires a running emulator or connected Android device.
-Instrumented tests cover Room uniqueness and reactive edits/deletes, manual form
-save and validation, edit round-trips, and application startup/navigation using
-the production Hilt graph. Form and database tests use isolated in-memory
-databases; the navigation test does not create or delete sale entries.
+The device command requires an unlocked emulator or connected Android device.
+The JVM suite contains 32 tests covering validation, decimal slip comparison,
+duplicate rejection, editing, mapping, summaries, OCR parsing, and reminder
+boundaries including daylight-saving transitions. Room and form device tests
+use in-memory databases. The navigation test uses the production Hilt graph;
+the captured-image test creates and removes its own cache image.
 
-## Pending verification
+Strict OpenSpec validation passed with no issues. This CLI requires the
+positional change name for `validate`; the task's older `--change` spelling is
+not supported.
 
-The first instrumented run on `Medium_Phone_API_37.0` executed six tests:
-both `MilkDatabaseTest` cases passed, while the navigation test and three form
-tests failed in Espresso initialization with
-`NoSuchMethodException: android.hardware.input.InputManager.getInstance []`.
-That initial run did not establish whether the UI behaviors passed or failed.
+## Resolved verification failures
 
-Espresso has been updated from 3.6.1 to 3.7.0. The AndroidX release notes identify
-the matching fix: use `getSystemService` instead of reflective
-`InputManager.getInstance`. The user reran the same instrumented suite on the
-same emulator and reported `BUILD SUCCESSFUL in 20s`. The saved XML report
-confirms six tests, zero failures, zero errors, and zero skipped tests. This
-verifies the compatibility fix, production Hilt startup, navigation through all
-four tabs, manual form validation and successful save, edit round-trip, and the
-two Room database cases.
-Source: [AndroidX Test release notes](https://developer.android.com/jetpack/androidx/releases/test#espresso-3.7.0).
+- API 37 broke Espresso 3.6.1's reflective `InputManager.getInstance` call.
+  Updating Espresso to 3.7.0 resolved initialization.
+  [AndroidX Test release notes](https://developer.android.com/jetpack/androidx/releases/test#espresso-3.7.0).
+- UI tests lost their Compose hierarchy when the emulator entered DOZING.
+  `UnlockedDeviceRule` wakes and unlocks the display, adds screen-on flags
+  before activity launch, and restores the flags and timeout afterward.
+  [Android screen-on guidance](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on).
+- The transient save snackbar could disappear before a database assertion
+  finished. Its test now controls Compose time around save and checks the
+  snackbar before inspecting the row.
+  [Compose test synchronization](https://developer.android.com/develop/ui/compose/testing/synchronization).
+- Real camera verification found zero-initialized thumbnail sampling causing
+  division by zero. `OcrCaptureTest` reproduced the failure before the fix and
+  passed after initializing the sample size to one.
 
-Five additional device tests have since been added for the slip-total tolerance
-indicators, invalid-field and duplicate dialogs, monthly totals/daily rows,
-weekly navigation, and month comparison with and without prior data. These use
-isolated in-memory databases. The expanded suite now contains eleven tests;
-the six-test result above remains the most recent entirely passing device run.
+## OCR coverage limit
 
-On 2026-10-25, a clean rebuild passed KSP and started all eleven tests. Both
-database tests passed, while all nine UI tests failed with "No compose
-hierarchies found". The saved logcats show the tested activities reaching
-RESUMED, then immediately PAUSED/STOPPED, without an application crash. An
-inactive or locked device is the leading hypothesis; it is not yet confirmed.
-
-The three UI test classes now run `UnlockedDeviceRule` before their Compose
-rules. It wakes the display, requests dismissal of a non-secure keyguard,
-checks the interactive/unlocked state, and temporarily extends the display
-timeout for each test. The original timeout is restored afterward. A secured
-device that still requires a PIN must be unlocked manually. Rerunning the same
-eleven tests is required to establish whether this resolves the failure.
-
-The next eleven-test run passed ten tests. The hierarchy failures no longer
-occurred. Slip-total indicators, inline field errors, the duplicate dialog,
-monthly/weekly summaries and month comparison passed. The remaining failure
-was the success test's `Entry saved` snackbar assertion; that same test had
-already confirmed the row and correct total in Room before failing.
-
-The success test now disables automatic Compose clock advancement before the
-save, waits for the asynchronous database operation, advances 500 ms of UI time
-for the snackbar to render, and asserts its visibility before checking the row.
-Clock behavior is restored in `finally`. This removes reliance on the transient
-message still being present after database assertions. The product's snackbar
-duration and save flow are unchanged. The user reran only
-`EntryFormTest#validFormSavesThroughRoomAndShowsSuccess` on the same emulator;
-it passed (`BUILD SUCCESSFUL in 10s`), confirmed by the saved XML report. All
-eleven instrumented test cases have therefore passed across the ten-test pass
-and this targeted rerun; the complete suite has not been rerun together after
-the clock-control change.
-Source: [Compose test synchronization](https://developer.android.com/develop/ui/compose/testing/synchronization).
-
-The next verification step adds three `LedgerScreenTest` cases using isolated
-Room databases: Home updates from no entries to both shifts with month totals;
-History groups entries and selects the correct ID for editing; cancellation
-preserves a row and confirmed deletion removes it. The production delete dialog
-is now a shared composable used by both the app and this test. Its wording,
-callbacks, and behavior are unchanged. These cases bring the complete
-instrumented suite to fourteen tests. The History test
-checks the edit callback, not the full navigation from History into the editor.
-
-The first targeted Ledger run passed the Home and delete/cancel cases. History
-failed before its first UI assertion with the hierarchy error. Its logcat
-explicitly records `NOTIFY_STARTED_GOING_TO_SLEEP`, a transition from GONE to
-DOZING, and the activity stopping. The initial wake/unlock check did not keep
-the display awake throughout this test.
-
-`UnlockedDeviceRule` now registers a lifecycle callback before activity launch
-to set test-window KEEP_SCREEN_ON and TURN_SCREEN_ON flags. It removes the
-callback and restores only flags it added, as well as the original display
-timeout, afterward. This is confined to instrumented tests. The user reran
-`LedgerScreenTest` on the same emulator: all three tests passed, with
-`BUILD SUCCESSFUL in 16s`. The saved XML confirms zero failures or skips. All
-fourteen instrumented cases have now passed across the recorded runs; a single
-full-suite run after the final lifecycle-rule change has not been recorded.
-Source:
-[Android screen-on guidance](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on).
-
-| Tasks | Check on device |
-| --- | --- |
-| 8.2 | Verify actual alarm delivery: missing shifts notify, saved shifts suppress, and tapping a notification opens the corresponding entry form. |
-| 9.1 | Complete the manual integration flow below and record actual results. |
-
-## Manual integration flow (not yet executed)
-
-1. Launch the updated app. Exercise notification permission denial and verify
-   manual entry remains available.
-2. Create today's morning entry: quantity 5.2, FAT 6.5, SNF 8.8, rate 38.50.
-   Expect total ₹200.20. Check slip totals ₹200.70 (match) and ₹200.71 (warning).
-3. Try another morning entry for the same date. Expect the duplicate dialog.
-4. Photograph an evening slip (quantity 4.8, rate 38.00). Correct any OCR errors,
-   fill missing quality values, confirm, and expect ₹182.40.
-5. Verify Home and the daily breakdown show both shifts: 10.0 L and ₹382.60.
-   Verify monthly and Monday–Sunday weekly summaries include the entries.
-6. Edit morning quantity to 5.5. Expect ₹211.75 and immediate history/summary
-   updates. Exercise both cancellation and confirmation of deletion.
-7. Set reminder times, restart the app, and confirm they persist. Time changes
-   apply from tomorrow. Verify notifications are suppressed for recorded shifts
-   and delivered for unrecorded shifts; tap one to open its entry form.
-8. Repeat entry, OCR, history, and summary checks with network connectivity off.
-
-The current bundled camera OCR model is for Latin script. Hindi labels and
-digits are supported by the parser and tested from OCR text. Recognizing Hindi
-script in photos needs the additional bundled Devanagari model; that choice is
-pending user clarification. Source:
+The bundled camera OCR model is for Latin script; actual offline photo
+verification used an English slip. Hindi labels and digits are supported by
+the parser's text tests. Hindi photo recognition needs the additional bundled
+Devanagari model and remains a separate choice, not a verified capability.
 [ML Kit Android text recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2/android).
 
 ## Version control
 
-The repository records `.gitignore`, the Android app checkpoint, and the
-OpenSpec/verification documentation in separate commits. Build output, local
-SDK settings, IDE state, generated packages, logs, and keystores are excluded
-by `.gitignore`.
+Verified steps are committed separately. `.gitignore` excludes build output,
+local SDK settings, IDE state, generated packages, logs, and keystores while
+keeping the Gradle wrapper tracked.
