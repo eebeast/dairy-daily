@@ -35,9 +35,9 @@
 
 - [x] 5.1 Create `SlipParser` utility in `ui/ocr/SlipParser.kt`. Takes ML Kit `Text` result, searches for keywords ("Qty", "Quantity", "Fat", "FAT", "SNF", "Rate", "Total" and common Hindi variants like "मात्रा", "दर"). Extracts adjacent decimal numbers. Returns parsed fields (nullable for unrecognized). Write unit tests with sample OCR text outputs. Verify tests pass.
 - [x] 5.2 Create `OcrViewModel` in `ui/ocr/OcrViewModel.kt` managing: camera permission state, captured image bitmap, ML Kit processing state (idle/processing/done/error), extracted fields, confirmation state. Verify compilation.
-- [ ] 5.3 Create `OcrCaptureScreen` in `ui/ocr/OcrCaptureScreen.kt`: check camera permission (request if needed with rationale), launch camera intent via `ActivityResultContracts.TakePicture`, pass captured image to ViewModel for ML Kit processing. Show loading indicator during OCR. Verify camera opens and image captures on device.
+- [x] 5.3 Create `OcrCaptureScreen` in `ui/ocr/OcrCaptureScreen.kt`: check camera permission (request if needed with rationale), launch camera intent via `ActivityResultContracts.TakePicture`, pass captured image to ViewModel for ML Kit processing. Show loading indicator during OCR. Verify camera opens and image captures on device.
 - [x] 5.4 Create `OcrConfirmScreen` in `ui/ocr/OcrConfirmScreen.kt`: display extracted values in editable fields (same layout as EntryScreen), pre-fill recognized fields, leave blanks for unrecognized. Show cross-verification (calculated vs extracted total). Include confirm, retake, and manual entry buttons. Verify screen shows extracted data and allows editing.
-- [ ] 5.5 Wire OCR confirm to entry save: on confirm, pass values through `SaveEntryUseCase` (same validation as manual entry). Handle permission denied state: show explanation and button to open app settings or switch to manual entry. Verify full OCR flow end-to-end: capture, extract, confirm, save.
+- [x] 5.5 Wire OCR confirm to entry save: on confirm, pass values through `SaveEntryUseCase` (same validation as manual entry). Handle permission denied state: show explanation and button to open app settings or switch to manual entry. Verify full OCR flow end-to-end: capture, extract, confirm, save.
 
 ## 6. Summary UI — Daily, Weekly, Monthly Views
 

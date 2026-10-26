@@ -15,6 +15,19 @@
   Selecting October 26 from the monthly summary opened Daily entries with
   that morning record and “No evening entry recorded.” This verifies 6.4
   and 7.3 through the production navigation and Room database.
+- Actual camera capture exposed a divide-by-zero in thumbnail sampling:
+  `BitmapFactory.Options.inSampleSize` defaulted to zero. Initialized it to
+  one. The new `OcrCaptureTest` failed before the fix and passed afterward,
+  exercising FileProvider image decoding and bundled ML Kit recognition.
+  APK assembly and all 32 JVM tests passed after the fix.
+- With airplane mode still enabled, the native camera photographed a synthetic
+  English slip supplied by the disposable emulator camera. OCR extracted 4.8 L,
+  FAT 6.5, SNF 8.8, rate ₹38, and slip total ₹182.40. Confirmation displayed a
+  matching calculated total. Retake reopened the camera; cancelling returned
+  Home with the evening shift still empty. A second capture was confirmed and
+  saved as evening. Home and monthly Summary then showed 10.00 L, ₹382.60,
+  and two entries. Camera denial had also shown the settings/manual fallback;
+  manual fallback successfully saved the morning entry. Tasks 5.3 and 5.5 pass.
 
 ## Recorded results
 
@@ -149,7 +162,6 @@ Source:
 
 | Tasks | Check on device |
 | --- | --- |
-| 5.3, 5.5 | Verify camera permission grant/denial, cancellation, capture, OCR, retake/manual fallback, and the complete confirmed-save flow. Editable confirmation and partial-field validation have passed. |
 | 8.1–8.3 | Permission denial disables reminders; times persist; exact/inexact alarms schedule; missing shifts notify; logged shifts suppress; notification tap opens the correct shift; reboot/timezone changes reschedule. |
 | 9.1 | Complete the manual integration flow below and record actual results. |
 

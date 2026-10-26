@@ -69,6 +69,7 @@ class OcrViewModel @Inject constructor(
                     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                     context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
                     val options = BitmapFactory.Options().apply {
+                        inSampleSize = 1
                         while (maxOf(bounds.outWidth, bounds.outHeight) / inSampleSize > 1600) inSampleSize *= 2
                     }
                     context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
