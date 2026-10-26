@@ -55,9 +55,9 @@
 
 ## 8. Notifications — Entry Reminders
 
-- [ ] 8.1 Create `ReminderScheduler` in `notification/ReminderScheduler.kt`: schedule two daily alarms (morning and evening) using `AlarmManager.setExactAndAllowWhileIdle`. Store user-configured times in DataStore (default 7:00 AM, 7:00 PM). Handle `SCHEDULE_EXACT_ALARM` permission for Android 12+. Reschedule alarms on boot via `BOOT_COMPLETED` receiver. Verify alarms schedule correctly.
+- [x] 8.1 Create `ReminderScheduler` in `notification/ReminderScheduler.kt`: schedule two daily alarms (morning and evening) using `AlarmManager.setExactAndAllowWhileIdle`. Store user-configured times in DataStore (default 7:00 AM, 7:00 PM). Handle `SCHEDULE_EXACT_ALARM` permission for Android 12+. Reschedule alarms on boot via `BOOT_COMPLETED` receiver. Verify alarms schedule correctly.
 - [ ] 8.2 Create `ReminderReceiver` (BroadcastReceiver) in `notification/ReminderReceiver.kt`: on alarm trigger, query Room for today's entry matching the shift. If entry exists, suppress notification. If not, show notification via `NotificationCompat` with tap action opening the entry screen. Create notification channel on app start. Verify notification shows when no entry exists and suppresses when entry exists.
-- [ ] 8.3 Create Settings screen in `ui/settings/SettingsScreen.kt`: toggle reminders on/off, set morning and evening reminder times (time pickers), request notification permission (Android 13+) with rationale. Show reminders as disabled when permission denied. Verify settings persist and alarms reschedule on change.
+- [x] 8.3 Create Settings screen in `ui/settings/SettingsScreen.kt`: toggle reminders on/off, set morning and evening reminder times (time pickers), request notification permission (Android 13+) with rationale. Show reminders as disabled when permission denied. Verify settings persist and alarms reschedule on change.
 
 ## 9. Integration Verification
 

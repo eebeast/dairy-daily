@@ -28,6 +28,14 @@
   saved as evening. Home and monthly Summary then showed 10.00 L, ₹382.60,
   and two entries. Camera denial had also shown the settings/manual fallback;
   manual fallback successfully saved the morning entry. Tasks 5.3 and 5.5 pass.
+- Reminder Settings verification passed on the disposable emulator: denied
+  notifications displayed reminders as disabled; rationale and Android's grant
+  flow recovered them. `dumpsys alarm` showed two inexact fallback alarms, then
+  two exact alarms after granting precise-alarm access. Changed morning time
+  to 6:30 AM, verified its next-day trigger, disabled reminders and verified no
+  pending reminder alarms. Time and disabled state survived a process restart.
+  Re-enabling restored both alarms with the custom time. Rebooting the emulator
+  restored both alarms without opening the app. Tasks 8.1 and 8.3 pass.
 
 ## Recorded results
 
@@ -162,7 +170,7 @@ Source:
 
 | Tasks | Check on device |
 | --- | --- |
-| 8.1–8.3 | Permission denial disables reminders; times persist; exact/inexact alarms schedule; missing shifts notify; logged shifts suppress; notification tap opens the correct shift; reboot/timezone changes reschedule. |
+| 8.2 | Verify actual alarm delivery: missing shifts notify, saved shifts suppress, and tapping a notification opens the corresponding entry form. |
 | 9.1 | Complete the manual integration flow below and record actual results. |
 
 ## Manual integration flow (not yet executed)
