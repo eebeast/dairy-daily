@@ -84,7 +84,7 @@ Run with Java 21:
 ```sh
 ./gradlew :app:assembleDebug :app:testDebugUnitTest
 ./gradlew :app:connectedDebugAndroidTest
-openspec validate milk-sale-tracker --type change --strict --json
+openspec validate --specs --strict --json
 ```
 
 The device command requires an unlocked emulator or connected Android device.
@@ -97,6 +97,13 @@ the captured-image test creates and removes its own cache image.
 Strict OpenSpec validation passed with no issues. This CLI requires the
 positional change name for `validate`; the task's older `--change` spelling is
 not supported.
+
+On 2026-10-27, all four capability specs were synced to `openspec/specs/`
+and passed strict validation. The completed change, including all 37 checked
+tasks, is preserved in
+[`2026-10-27-milk-sale-tracker`](../openspec/changes/archive/2026-10-27-milk-sale-tracker/).
+`openspec list` now has no active changes; `openspec list --specs` lists all
+four capabilities.
 
 ## Resolved verification failures
 
