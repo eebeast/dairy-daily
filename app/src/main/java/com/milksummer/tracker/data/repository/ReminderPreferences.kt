@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.milksummer.tracker.domain.model.Shift
+import com.milksummer.tracker.data.backup.BackupReminders
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.time.LocalDate
@@ -49,6 +50,16 @@ class ReminderPreferences @Inject constructor(@ApplicationContext context: Conte
 
     suspend fun enable(value: Boolean) { store.edit { it[enabled] = value } }
     suspend fun markNotificationAsked() { store.edit { it[asked] = true } }
+    suspend fun restore(value: BackupReminders) {
+        val tomorrow = LocalDate.now().plusDays(1).toEpochDay()
+        store.edit {
+            it[enabled] = value.enabled
+            it[morning] = value.morning.hour * 60 + value.morning.minute
+            it[evening] = value.evening.hour * 60 + value.evening.minute
+            it[morningFrom] = tomorrow
+            it[eveningFrom] = tomorrow
+        }
+    }
     suspend fun time(shift: Shift, value: LocalTime) {
         store.edit {
             val key = if (shift == Shift.MORNING) morning else evening

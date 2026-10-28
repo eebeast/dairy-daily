@@ -2,8 +2,8 @@
 
 ## 1. Backup data and merge
 
-- [ ] 1.1 Add the versioned JSON codec and format documentation; verify round-trip, empty backup, invalid/version/field/duplicate/limit rejection with device tests against platform JSON parsing.
-- [ ] 1.2 Add export and transactional merge service plus one-edit reminder restoration; verify duplicate preservation, repeat restore, local IDs, retained timestamps, transaction rollback, and distinct settings failure results with isolated Room tests.
+- [x] 1.1 Add the versioned JSON codec and format documentation; verify round-trip, empty backup, invalid/version/field/duplicate/limit rejection with device tests against platform JSON parsing.
+- [x] 1.2 Add export and transactional merge service plus one-edit reminder restoration; verify duplicate preservation, repeat restore, local IDs, retained timestamps, transaction rollback, and distinct settings failure results with isolated Room tests.
 
 ## 2. Settings flow
 
