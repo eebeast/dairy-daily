@@ -3,6 +3,7 @@ package com.milksummer.tracker.data.repository
 import android.content.Context
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.core.DataStore
 import com.milksummer.tracker.domain.model.Shift
 import com.milksummer.tracker.data.backup.BackupReminders
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,8 +27,8 @@ data class ReminderSettings(
 )
 
 @Singleton
-class ReminderPreferences @Inject constructor(@ApplicationContext context: Context) {
-    private val store = context.reminderDataStore
+class ReminderPreferences internal constructor(private val store: DataStore<Preferences>) {
+    @Inject constructor(@ApplicationContext context: Context) : this(context.reminderDataStore)
     private val enabled = booleanPreferencesKey("enabled")
     private val morning = intPreferencesKey("morning_minutes")
     private val evening = intPreferencesKey("evening_minutes")

@@ -7,8 +7,8 @@
 
 ## 2. Settings flow
 
-- [ ] 2.1 Add file-picker actions, retained preview state, explicit confirmation, busy protection, cancellation, and clear outcomes in Settings; verify preview/cancel/confirm/error UI with instrumented tests and compile the app.
-- [ ] 2.2 Document backup and restore usage, limitations, duplicate policy, and permission behavior in README; verify documentation matches implemented controls and outcomes.
+- [x] 2.1 Add file-picker actions, retained preview state, explicit confirmation, busy protection, cancellation, and clear outcomes in Settings; verify preview/cancel/confirm/error UI with instrumented tests and compile the app.
+- [x] 2.2 Document backup and restore usage, limitations, duplicate policy, and permission behavior in README; verify documentation matches implemented controls and outcomes.
 
 ## 3. Integration verification
 

@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.milksummer.tracker.domain.model.Shift
+import com.milksummer.tracker.ui.backup.BackupSection
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -45,6 +46,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onRequestPermission: () -> Unit
             Text("Reminders may arrive late unless precise alarms are allowed.")
             OutlinedButton(onClick = { context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}"))) }) { Text("Allow precise reminder times") }
         }
+        BackupSection()
         Text("MilkSummer · Offline milk sale tracker", style = MaterialTheme.typography.bodySmall)
         state.error?.let { message ->
             Text(message, color = MaterialTheme.colorScheme.error)
