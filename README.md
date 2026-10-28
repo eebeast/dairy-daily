@@ -36,5 +36,6 @@ With an emulator or USB debugging device running:
 Camera permission is requested when scanning. Notification permission is
 optional. If precise alarms are not allowed, reminders use inexact alarms.
 
-Data stays in the local Room database. See [verification notes](docs/verification.md)
-for completed checks and device verification still needed.
+Data stays in the local Room database. All 37 implementation tasks are complete;
+32 unit tests and 17 device tests passed. See [verification notes](docs/verification.md)
+for results and OCR coverage limits.
