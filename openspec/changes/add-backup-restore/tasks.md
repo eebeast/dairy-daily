@@ -12,7 +12,7 @@
 
 ## 3. Integration verification
 
-- [ ] 3.1 Verify actual system-picker export, preview, cancel, and confirmed restore on a disposable emulator with sample data; record results without modifying user records.
+- [x] 3.1 Verify actual system-picker export, preview, cancel, and confirmed restore on a disposable emulator with sample data; record results without modifying user records.
 - [ ] 3.2 Run APK assembly, JVM and complete device suites, and strict OpenSpec validation; record passing results and commit the verified changes.
 
 ## Workflow follow-up

@@ -3,6 +3,8 @@ package com.milksummer.tracker.ui.backup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -50,7 +52,7 @@ fun BackupContent(
             onDismissRequest = { if (!state.busy) onCancel() },
             title = { Text("Restore this backup?") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("${data.entries.size} entries")
                     Text(if (data.firstDate == null) "No recorded dates" else "${data.firstDate} to ${data.lastDate}")
                     Text("Existing entries for the same date and shift will be kept and skipped.")
