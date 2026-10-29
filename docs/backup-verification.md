@@ -6,6 +6,19 @@ On 2026-10-28, APK assembly and the 32 existing JVM tests passed using Java 21
 and cached dependencies. Targeted API 37 device runs passed seven BackupDataTest
 cases and four BackupScreenTest/BackupReminderTest cases with zero failures.
 
+The final combined Gradle run completed on 2026-10-29: APK assembly, all 32 JVM
+tests, and all 28 instrumented tests passed together. XML reports contain zero
+failures, errors, and skips. Strict validation passed for this change and all
+four existing main specs. All six backup/restore tasks are complete.
+
+```sh
+./gradlew :app:assembleDebug :app:testDebugUnitTest :app:connectedDebugAndroidTest --offline
+openspec validate add-backup-restore --type change --strict --json
+```
+
+Use Java 21 and a running emulator for the Gradle command. The backup change
+remains active for review before syncing its new spec and archiving.
+
 These use isolated in-memory Room databases and a temporary DataStore file:
 
 - Portable JSON round-trip and empty backups; no internal IDs or permission state.

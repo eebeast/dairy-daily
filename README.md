@@ -58,8 +58,8 @@ See the [backup format](docs/backup-format.md) for validation and compatibility.
 Camera permission is requested when scanning. Notification permission is
 optional. If precise alarms are not allowed, reminders use inexact alarms.
 
-Data stays in the local Room database until you explicitly export it. The original
-37 implementation tasks are complete; their 32 unit tests and 17 device tests
-passed. See [verification notes](docs/verification.md) for those results and OCR
-coverage limits, and [backup verification](docs/backup-verification.md) for the
-additional backup checks.
+Data stays in the local Room database until you explicitly export it. The full
+suite passed with 32 unit tests and 28 device tests. See
+[verification notes](docs/verification.md) for the original tracker checks and
+OCR coverage limits, and [backup verification](docs/backup-verification.md) for
+the completed backup and restore checks.
