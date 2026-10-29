@@ -13,11 +13,14 @@ four existing main specs. All six backup/restore tasks are complete.
 
 ```sh
 ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:connectedDebugAndroidTest --offline
-openspec validate add-backup-restore --type change --strict --json
+openspec validate --specs --strict --json
 ```
 
-Use Java 21 and a running emulator for the Gradle command. The backup change
-remains active for review before syncing its new spec and archiving.
+Use Java 21 and a running emulator for the Gradle command. On 2026-10-29, the
+backup specification was synced to `openspec/specs/backup-restore/spec.md` and
+the completed change was archived at
+[`2026-10-29-add-backup-restore`](../openspec/changes/archive/2026-10-29-add-backup-restore/).
+All five main specs passed strict validation, and no active changes remain.
 
 These use isolated in-memory Room databases and a temporary DataStore file:
 
