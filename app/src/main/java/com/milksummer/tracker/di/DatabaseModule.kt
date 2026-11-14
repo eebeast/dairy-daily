@@ -17,7 +17,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun database(@ApplicationContext context: Context): MilkDatabase =
-        Room.databaseBuilder(context, MilkDatabase::class.java, "milk_entries.db").build()
+        Room.databaseBuilder(context, MilkDatabase::class.java, "milk_entries.db")
+            .addMigrations(MilkDatabase.MIGRATION_1_2).build()
 
     @Provides
     fun dao(database: MilkDatabase) = database.milkEntryDao()

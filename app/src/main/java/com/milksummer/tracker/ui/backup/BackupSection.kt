@@ -55,7 +55,7 @@ fun BackupContent(
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("${data.entries.size} entries")
                     Text(if (data.firstDate == null) "No recorded dates" else "${data.firstDate} to ${data.lastDate}")
-                    Text("Existing entries for the same date and shift will be kept and skipped.")
+                    Text("Existing entries with the same identity or known date and shift will be kept and skipped.")
                     Text("Reminders: ${if (data.reminders.enabled) "on" else "off"}. Morning ${data.reminders.morning.format(time)}, evening ${data.reminders.evening.format(time)}.")
                     Text("Reminder times apply from tomorrow. Notification permissions stay controlled by this device.")
                     if (state.busy) Text("Restoring…")

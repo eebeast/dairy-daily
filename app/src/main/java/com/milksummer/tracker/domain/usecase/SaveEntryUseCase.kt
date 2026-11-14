@@ -23,12 +23,13 @@ class SaveEntryUseCase @Inject constructor(
         val previous = if (entry.id == 0L) null else {
             repository.getEntry(entry.id) ?: return SaveEntryResult.Missing
         }
-        val duplicate = repository.getEntry(entry.date, entry.shift)
+        val duplicate = entry.shift?.let { repository.getEntry(entry.date, it) }
         if (duplicate != null && duplicate.id != entry.id) return SaveEntryResult.Duplicate
         val calculated = entry.copy(
             total = entry.quantity * entry.rate,
             createdAt = previous?.createdAt ?: clock.millis(),
-            updatedAt = clock.millis()
+            updatedAt = clock.millis(),
+            portableId = previous?.portableId ?: entry.portableId
         )
         return try {
             SaveEntryResult.Success(

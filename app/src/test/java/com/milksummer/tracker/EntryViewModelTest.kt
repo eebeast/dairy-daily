@@ -21,14 +21,14 @@ class EntryViewModelTest {
             SaveEntryUseCase(repository, validation, clock), validation, clock)
     }
 
-    @Test fun newFormChoosesNextExpectedShift() = runTest {
+    @Test fun newFormLeavesShiftBlankEvenWhenMorningExists() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         try {
             val repository = FakeMilkEntryRepository()
             repository.saveEntry(sampleEntry(LocalDate.now(clock)))
             val viewModel = model(repository)
             advanceUntilIdle()
-            assertEquals(Shift.EVENING, viewModel.state.value.shift)
+            assertNull(viewModel.state.value.shift)
             assertEquals(LocalDate.now(clock), viewModel.state.value.date)
             assertFalse(viewModel.state.value.loading)
         } finally { Dispatchers.resetMain() }
@@ -82,7 +82,55 @@ class EntryViewModelTest {
             advanceUntilIdle()
             assertEquals(1, repository.entries.value.size)
             assertEquals(original.id, repository.entries.value.single().id)
+            assertEquals(original.portableId, repository.entries.value.single().portableId)
             assertEquals(211.75, repository.entries.value.single().total, 0.000001)
+        } finally { Dispatchers.resetMain() }
+    }
+
+    @Test fun scanWaitsForInitializationAndSameScanKeepsClearedShift() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val repo = FakeMilkEntryRepository()
+            val viewModel = model(repo)
+            val slip = ParsedSlip(5.2, 6.5, 8.8, 38.5, 200.2, Shift.EVENING)
+            // The initialization coroutine has not run yet.
+            viewModel.prefillScan("scan-1", slip)
+            advanceUntilIdle()
+            assertEquals(Shift.EVENING, viewModel.state.value.shift)
+            viewModel.selectShift(null)
+            viewModel.prefillScan("scan-1", slip)
+            assertNull(viewModel.state.value.shift)
+            viewModel.prefillScan("scan-2", slip.copy(shift = Shift.MORNING))
+            assertEquals(Shift.MORNING, viewModel.state.value.shift)
+            viewModel.prefillScan("scan-3", slip.copy(shift = null))
+            assertNull(viewModel.state.value.shift)
+            viewModel.save()
+            advanceUntilIdle()
+            assertNull(repo.entries.value.single().shift)
+        } finally { Dispatchers.resetMain() }
+    }
+
+    @Test fun reminderHintCanBeClearedAndKnownConflictDoesNotSave() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val repo = FakeMilkEntryRepository()
+            repo.saveEntry(sampleEntry(LocalDate.now(clock)))
+            val validate = ValidateEntryUseCase()
+            val viewModel = EntryViewModel(SavedStateHandle(mapOf("shift" to "MORNING")), repo,
+                SaveEntryUseCase(repo, validate, clock), validate, clock)
+            advanceUntilIdle()
+            assertEquals(Shift.MORNING, viewModel.state.value.shift)
+            viewModel.prefill(5.2, 6.5, 8.8, 38.5, null)
+            viewModel.save()
+            advanceUntilIdle()
+            assertTrue(viewModel.state.value.duplicate)
+            assertEquals(1, repo.entries.value.size)
+            viewModel.dismissError()
+            viewModel.selectShift(null)
+            viewModel.save()
+            advanceUntilIdle()
+            assertEquals(2, repo.entries.value.size)
+            assertNull(viewModel.state.value.saved!!.shift)
         } finally { Dispatchers.resetMain() }
     }
 }

@@ -72,7 +72,7 @@ class BackupScreenTest {
         compose.onNodeWithText("Restore this backup?").assertIsDisplayed()
         compose.onNodeWithText("1 entries").assertIsDisplayed()
         compose.onNodeWithText("2026-10-26 to 2026-10-26").assertIsDisplayed()
-        compose.onNodeWithText("Existing entries for the same date and shift will be kept and skipped.").assertIsDisplayed()
+        compose.onNodeWithText("Existing entries with the same identity or known date and shift will be kept and skipped.").assertIsDisplayed()
         compose.onNodeWithText("Reminders: off. Morning 6:30 AM, evening 7:00 PM.").assertIsDisplayed()
         compose.onNodeWithText("Cancel").performClick()
         compose.onNodeWithText("Restore this backup?").assertDoesNotExist()

@@ -12,6 +12,7 @@ import java.io.OutputStream
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -23,7 +24,7 @@ data class BackupData(val createdAt: Instant, val entries: List<MilkEntry>, val 
     val lastDate: LocalDate? get() = entries.maxOfOrNull { it.date }
 }
 
-/** Version 1 is documented in docs/backup-format.md. No row IDs or permissions travel. */
+/** Reads versions 1 and 2; exports version 2. See docs/backup-format.md. */
 class BackupCodec @Inject constructor() {
     companion object {
         const val MAX_BYTES = 10 * 1024 * 1024
@@ -47,7 +48,8 @@ class BackupCodec @Inject constructor() {
                 value
             }
             require(root["format"] == FORMAT) { "This is not a MilkSummer backup." }
-            require(integer(root["version"]) == 1L) { "Unsupported backup version. Update MilkSummer to restore this file." }
+            val version = integer(root["version"])
+            require(version == 1L || version == 2L) { "Unsupported backup version. Update MilkSummer to restore this file." }
             val created = Instant.parse(string(root["createdAt"]))
             val reminders = objectValue(root["reminders"])
             val settings = BackupReminders(
@@ -59,12 +61,16 @@ class BackupCodec @Inject constructor() {
             val entries = rows.map { row ->
                 val fields = objectValue(row)
                 require(fields.containsKey("slipTotal")) { "Missing slip total field." }
+                require(fields.containsKey("shift")) { "Missing shift field." }
+                val shift = if (version == 2L && fields["shift"] == null) null
+                    else Shift.valueOf(string(fields["shift"]))
                 MilkEntry(
-                    date = LocalDate.parse(string(fields["date"])), shift = Shift.valueOf(string(fields["shift"])),
+                    date = LocalDate.parse(string(fields["date"])), shift = shift,
                     quantity = decimal(fields["quantity"]), fat = decimal(fields["fat"]), snf = decimal(fields["snf"]),
                     rate = decimal(fields["rate"]), total = decimal(fields["total"]),
                     slipTotal = fields["slipTotal"]?.let(::decimal),
-                    createdAt = integer(fields["createdAt"]), updatedAt = integer(fields["updatedAt"])
+                    createdAt = integer(fields["createdAt"]), updatedAt = integer(fields["updatedAt"]),
+                    portableId = if (version == 2L) portableId(string(fields["portableId"])) else UUID.randomUUID().toString()
                 )
             }
             return BackupData(created, entries, settings).also(::validate)
@@ -80,13 +86,17 @@ class BackupCodec @Inject constructor() {
         requireBackup(data.reminders.morning.second == 0 && data.reminders.morning.nano == 0 &&
             data.reminders.evening.second == 0 && data.reminders.evening.nano == 0, "Reminder times must use whole minutes.")
         val keys = HashSet<Pair<LocalDate, Shift>>()
+        val identities = HashSet<String>()
         val validateEntry = ValidateEntryUseCase()
         data.entries.forEach { entry ->
-            requireBackup(validateEntry(entry).isValid, "Invalid values for ${entry.date}, ${entry.shift.name.lowercase()}.")
+            requireBackup(validateEntry(entry).isValid, "Invalid values for ${entry.date}.")
             requireBackup(entry.total.isFinite() && abs(entry.total - entry.quantity * entry.rate) <= 0.000001,
                 "An entry total does not match quantity × rate.")
             requireBackup(entry.createdAt >= 0 && entry.updatedAt >= entry.createdAt, "Invalid entry timestamps.")
-            requireBackup(keys.add(entry.date to entry.shift), "Backup contains repeated date/shift entries.")
+            val identity = try { portableId(entry.portableId) }
+                catch (_: IllegalArgumentException) { throw BackupException("Invalid portable entry identity.") }
+            requireBackup(identities.add(identity), "Backup contains repeated portable identities.")
+            entry.shift?.let { requireBackup(keys.add(entry.date to it), "Backup contains repeated date/shift entries.") }
         }
     }
 
@@ -96,13 +106,15 @@ class BackupCodec @Inject constructor() {
         val bytes = ByteArrayOutputStream()
         JsonWriter(bytes.writer(Charsets.UTF_8)).use { writer ->
             writer.setIndent("  ")
-            writer.beginObject().name("format").value(FORMAT).name("version").value(1)
+            writer.beginObject().name("format").value(FORMAT).name("version").value(2)
                 .name("createdAt").value(data.createdAt.toString()).name("reminders").beginObject()
                 .name("enabled").value(data.reminders.enabled).name("morning").value(data.reminders.morning.toString())
                 .name("evening").value(data.reminders.evening.toString()).endObject().name("entries").beginArray()
             data.entries.forEach { row ->
-                writer.beginObject().name("date").value(row.date.toString()).name("shift").value(row.shift.name)
-                    .name("quantity").value(row.quantity).name("fat").value(row.fat).name("snf").value(row.snf)
+                writer.beginObject().name("portableId").value(row.portableId)
+                    .name("date").value(row.date.toString()).name("shift")
+                if (row.shift == null) writer.nullValue() else writer.value(row.shift.name)
+                writer.name("quantity").value(row.quantity).name("fat").value(row.fat).name("snf").value(row.snf)
                     .name("rate").value(row.rate).name("total").value(row.total).name("slipTotal")
                 if (row.slipTotal == null) writer.nullValue() else writer.value(row.slipTotal)
                 writer.name("createdAt").value(row.createdAt).name("updatedAt").value(row.updatedAt).endObject()
@@ -150,5 +162,10 @@ class BackupCodec @Inject constructor() {
         ?: error("Missing or invalid number.")
     private fun integer(value: Any?): Long = (value as? NumberText)?.value?.toLongOrNull()
         ?: error("Missing or invalid integer.")
+    private fun portableId(value: String): String {
+        val canonical = UUID.fromString(value).toString()
+        require(value == canonical) { "Portable identity must be a canonical UUID." }
+        return canonical
+    }
     private fun requireBackup(condition: Boolean, message: String) { if (!condition) throw BackupException(message) }
 }

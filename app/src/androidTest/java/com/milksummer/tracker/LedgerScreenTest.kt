@@ -36,13 +36,13 @@ class LedgerScreenTest {
 
     @After fun close() { database.close() }
 
-    private fun show(home: Boolean) {
+    private fun show(home: Boolean, day: LocalDate? = null) {
         compose.setContent {
             MilkSummerTheme {
                 val state by viewModel.state.collectAsState()
                 var pendingDelete by remember { mutableStateOf<MilkEntry?>(null) }
                 if (home) HomeScreen(state, {}, {}, { selectedEntry = it }, { pendingDelete = it })
-                else HistoryScreen(state, { selectedEntry = it }, { pendingDelete = it })
+                else HistoryScreen(state, { selectedEntry = it }, { pendingDelete = it }, day)
                 pendingDelete?.let { entry ->
                     DeleteEntryDialog(entry,
                         onConfirm = { viewModel.delete(entry); pendingDelete = null },
@@ -53,27 +53,47 @@ class LedgerScreenTest {
         compose.waitUntil(5000) { !viewModel.state.value.loading }
     }
 
-    private fun entry(date: LocalDate = today, shift: Shift = Shift.MORNING, quantity: Double = 5.2, rate: Double = 38.5) =
+    private fun entry(date: LocalDate = today, shift: Shift? = Shift.MORNING, quantity: Double = 5.2, rate: Double = 38.5) =
         MilkEntry(date, shift, quantity, 6.5, 8.8, rate)
 
-    @Test fun homeUpdatesFromEmptyToBothShiftsAndMonthTotals() {
+    @Test fun homeUpdatesFromEmptyToMixedShiftSalesAndMonthTotals() {
         show(home = true)
-        compose.onNodeWithText("Morning: no entry recorded").assertIsDisplayed()
-        compose.onNodeWithText("Evening: no entry recorded").assertIsDisplayed()
+        compose.onNodeWithText("No milk sales recorded today.").assertIsDisplayed()
+        compose.onNodeWithText("Today's shifts").assertDoesNotExist()
+        compose.onNodeWithText("Add morning entry").assertDoesNotExist()
+        compose.onNodeWithText("Add evening entry").assertDoesNotExist()
         compose.onNodeWithText("Add Entry").assertIsDisplayed()
         compose.onNodeWithText("Scan Slip").assertIsDisplayed()
         runBlocking {
             repository.saveEntry(entry())
-            repository.saveEntry(entry(shift = Shift.EVENING, quantity = 4.8, rate = 38.0))
+            repository.saveEntry(entry(shift = null, quantity = 4.8, rate = 38.0))
+            repository.saveEntry(entry(shift = null, quantity = 1.0, rate = 40.0))
         }
-        compose.waitUntil(5000) { viewModel.state.value.entries.size == 2 }
+        compose.waitUntil(5000) { viewModel.state.value.entries.size == 3 }
         compose.onNodeWithText("Morning: no entry recorded").assertDoesNotExist()
         compose.onNodeWithText("Evening: no entry recorded").assertDoesNotExist()
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Today: 10.00 L · ${money(382.6)}"))
-        compose.onNodeWithText("Today: 10.00 L · ${money(382.6)}").assertIsDisplayed()
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Today: 11.00 L · ${money(422.6)}"))
+        compose.onNodeWithText("Today: 11.00 L · ${money(422.6)}").assertIsDisplayed()
         compose.onNode(hasScrollAction()).performScrollToNode(hasText("Month to date"))
-        compose.onNodeWithText("10.00 liters").assertIsDisplayed()
-        compose.onNodeWithText(money(382.6)).assertIsDisplayed()
+        compose.onNodeWithText("11.00 liters").assertIsDisplayed()
+        compose.onNodeWithText(money(422.6)).assertIsDisplayed()
+    }
+
+    @Test fun unknownShiftRowsRemainSeparateAndActionsTargetTheCorrectSale() {
+        val first = runBlocking { repository.saveEntry(entry(shift = null, quantity = 1.0)) }
+        val second = runBlocking { repository.saveEntry(entry(shift = null, quantity = 2.0)) }
+        show(home = false, day = today)
+        compose.waitUntil(5000) { viewModel.state.value.entries.size == 2 }
+        compose.onNodeWithText("No morning entry recorded.").assertDoesNotExist()
+        compose.onNodeWithText("No evening entry recorded.").assertDoesNotExist()
+        compose.onNodeWithText("1.00 L × ${money(38.5)} = ${money(38.5)}").performClick()
+        compose.runOnIdle { assertEquals(first.id, selectedEntry) }
+        compose.onAllNodesWithText("Delete")[1].performClick()
+        compose.onNodeWithText("Delete the entry for $today? This cannot be undone.").assertIsDisplayed()
+        compose.onNode(hasText("Delete") and hasAnyAncestor(isDialog())).performClick()
+        compose.waitUntil(5000) { viewModel.state.value.entries.size == 1 }
+        assertNotNull(runBlocking { repository.getEntry(first.id) })
+        assertNull(runBlocking { repository.getEntry(second.id) })
     }
 
     @Test fun historyGroupsNewestDayFirstAndSelectsTheCorrectEntryForEditing() {

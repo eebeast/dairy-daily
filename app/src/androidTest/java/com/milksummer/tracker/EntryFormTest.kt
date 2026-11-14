@@ -52,7 +52,9 @@ class EntryFormTest {
     }
 
     @Test fun validFormSavesThroughRoomAndShowsSuccess() {
-        show(); fill()
+        show()
+        compose.onNodeWithText("No shift").assertIsSelected()
+        fill()
         val save = compose.onNodeWithText("Save entry").performScrollTo()
         // Keep the transient snackbar on screen while checking its semantics.
         // Room completes independently of the Compose animation clock.
@@ -62,9 +64,10 @@ class EntryFormTest {
             compose.waitUntil(5000) { viewModel.state.value.saved != null }
             compose.mainClock.advanceTimeBy(500)
             compose.onNodeWithText("Entry saved").assertIsDisplayed()
-            val stored = runBlocking { repository.getEntry(LocalDate.now(clock), Shift.MORNING) }
+            val stored = runBlocking { repository.getAll().first().single() }
             assertNotNull(stored)
-            assertEquals(200.2, stored!!.total, 0.000001)
+            assertEquals(200.2, stored.total, 0.000001)
+            assertNull(stored.shift)
         } finally {
             compose.mainClock.autoAdvance = true
         }

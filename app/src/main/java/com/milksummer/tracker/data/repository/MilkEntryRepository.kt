@@ -62,10 +62,10 @@ class RoomMilkEntryRepository @Inject constructor(private val dao: MilkEntryDao)
 
 fun MilkEntryEntity.toDomain() = MilkEntry(
     date = date, shift = shift, quantity = quantity, fat = fat, snf = snf, rate = rate,
-    id = id, total = total, slipTotal = slipTotal, createdAt = createdAt, updatedAt = updatedAt
+    id = id, total = total, slipTotal = slipTotal, createdAt = createdAt, updatedAt = updatedAt, portableId = portableId
 )
 
 fun MilkEntry.toEntity() = MilkEntryEntity(
     id = id, date = date, shift = shift, quantity = quantity, fat = fat, snf = snf,
-    rate = rate, total = total, slipTotal = slipTotal, createdAt = createdAt, updatedAt = updatedAt
+    rate = rate, total = total, slipTotal = slipTotal, createdAt = createdAt, updatedAt = updatedAt, portableId = portableId
 )

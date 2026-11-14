@@ -20,6 +20,9 @@ interface MilkEntryDao {
     @Query("SELECT * FROM milk_entries WHERE id = :id")
     suspend fun getById(id: Long): MilkEntryEntity?
 
+    @Query("SELECT * FROM milk_entries WHERE portable_id = :portableId LIMIT 1")
+    suspend fun getByPortableId(portableId: String): MilkEntryEntity?
+
     @Query("SELECT * FROM milk_entries WHERE date = :date AND shift = :shift LIMIT 1")
     suspend fun getByDateAndShift(date: LocalDate, shift: Shift): MilkEntryEntity?
 

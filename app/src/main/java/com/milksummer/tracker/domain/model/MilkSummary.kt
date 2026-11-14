@@ -25,7 +25,7 @@ fun summarizeEntries(
     val selected = entries.filter { !it.date.isBefore(start) && !it.date.isAfter(through) }
     val days = if (through < start) 0 else ChronoUnit.DAYS.between(start, through).toInt() + 1
     val completeDays = selected.groupBy { it.date }.count { (_, day) ->
-        day.map { it.shift }.toSet().size == Shift.entries.size
+        day.mapNotNull { it.shift }.toSet().containsAll(Shift.entries)
     }
     return MilkSummary(
         totalLiters = selected.sumOf { it.quantity },

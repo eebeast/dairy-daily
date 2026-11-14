@@ -11,14 +11,14 @@ import java.time.LocalDate
 
 @Entity(
     tableName = "milk_entries",
-    indices = [Index(value = ["date", "shift"], unique = true)]
+    indices = [Index(value = ["date", "shift"], unique = true), Index(value = ["portable_id"], unique = true)]
 )
 @TypeConverters(MilkEntryConverters::class)
 data class MilkEntryEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val date: LocalDate,
-    val shift: Shift,
+    val shift: Shift?,
     val quantity: Double,
     val fat: Double,
     val snf: Double,
@@ -29,5 +29,7 @@ data class MilkEntryEntity(
     @ColumnInfo(name = "created_at")
     val createdAt: Long,
     @ColumnInfo(name = "updated_at")
-    val updatedAt: Long
+    val updatedAt: Long,
+    @ColumnInfo(name = "portable_id")
+    val portableId: String = java.util.UUID.randomUUID().toString()
 )

@@ -29,7 +29,7 @@ class LedgerViewModel @Inject constructor(private val repository: MilkEntryRepos
         emit(emptyList())
     }
     val state = combine(entries, today, errors) { entries, date, error ->
-        LedgerUiState(entries.sortedWith(compareByDescending<MilkEntry> { it.date }.thenBy { it.shift }), date,
+        LedgerUiState(entries.sortedWith(compareByDescending<MilkEntry> { it.date }.thenBy { it.shift }.thenBy { it.id }), date,
             summarizeEntries(entries, date.withDayOfMonth(1), date, date), false, error)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LedgerUiState(today = today.value))
 

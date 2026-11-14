@@ -21,7 +21,7 @@ class GetSummaryUseCase @Inject constructor(
         return range(monday, monday.plusDays(6))
     }
 
-    fun range(start: LocalDate, end: LocalDate) = repository.getEntriesByDateRange(start, end).map {
-        summarizeEntries(it, start, end, LocalDate.now(clock))
+    fun range(start: LocalDate, end: LocalDate, today: LocalDate = LocalDate.now(clock)) = repository.getEntriesByDateRange(start, end).map {
+        summarizeEntries(it, start, end, today)
     }
 }

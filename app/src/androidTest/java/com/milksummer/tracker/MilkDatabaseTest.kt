@@ -27,7 +27,7 @@ class MilkDatabaseTest {
 
     @After fun close() { database.close() }
 
-    private fun entry(shift: Shift = Shift.MORNING) = MilkEntryEntity(
+    private fun entry(shift: Shift? = Shift.MORNING) = MilkEntryEntity(
         date = LocalDate.of(2026, 10, 24), shift = shift, quantity = 5.2,
         fat = 6.5, snf = 8.8, rate = 38.5, total = 200.2, slipTotal = null, createdAt = 100, updatedAt = 100
     )
@@ -46,9 +46,10 @@ class MilkDatabaseTest {
 
     @Test fun editingAndDeletingAreReflectedInReactiveQueries() = runBlocking {
         val dao = database.milkEntryDao()
-        val id = dao.insert(entry())
+        val original = entry()
+        val id = dao.insert(original)
         val stored = dao.getById(id)!!
-        assertEquals(entry().copy(id = id), stored)
+        assertEquals(original.copy(id = id), stored)
         dao.update(stored.copy(quantity = 5.5, total = 211.75, updatedAt = 200))
         val edited = dao.getByDateRange(stored.date, stored.date).first().single()
         assertEquals(211.75, edited.total, 0.000001)
@@ -56,5 +57,18 @@ class MilkDatabaseTest {
         dao.delete(id)
         assertNull(dao.getById(id))
         assertTrue(dao.getAll().first().isEmpty())
+    }
+
+    @Test fun nullShiftsAllowDistinctSalesButPortableIdsAreUnique() = runBlocking {
+        val dao = database.milkEntryDao()
+        val first = entry(null)
+        val id = dao.insert(first)
+        dao.insert(entry(null))
+        dao.insert(entry())
+        dao.insert(entry(Shift.EVENING))
+        assertEquals(id, dao.getByPortableId(first.portableId)!!.id)
+        try { dao.insert(first.copy(date = first.date.plusDays(1))); fail("Repeated identity accepted") }
+        catch (_: SQLiteConstraintException) { }
+        assertEquals(4, dao.getAll().first().size)
     }
 }

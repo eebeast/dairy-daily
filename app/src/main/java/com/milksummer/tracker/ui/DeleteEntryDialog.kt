@@ -11,7 +11,7 @@ fun DeleteEntryDialog(entry: MilkEntry, onConfirm: () -> Unit, onDismiss: () -> 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Delete entry?") },
-        text = { Text("Delete the ${entry.shift.name.lowercase()} entry for ${entry.date}? This cannot be undone.") },
+        text = { Text("Delete the ${entry.shift?.let { "${it.name.lowercase()} " }.orEmpty()}entry for ${entry.date}? This cannot be undone.") },
         confirmButton = { TextButton(onClick = onConfirm) { Text("Delete") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )

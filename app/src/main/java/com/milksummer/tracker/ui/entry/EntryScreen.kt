@@ -53,6 +53,8 @@ fun EntryScreen(
                     DatePickerDialog(context, { _, year, month, day -> viewModel.selectDate(LocalDate.of(year, month + 1, day)) }, state.date.year, state.date.monthValue - 1, state.date.dayOfMonth).show()
                 }, enabled = !state.saving && state.saved == null) { Text("Date: ${state.date}") }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = state.shift == null, onClick = { viewModel.selectShift(null) },
+                        label = { Text("No shift") }, enabled = !state.saving && state.saved == null)
                     Shift.entries.forEach { shift ->
                         FilterChip(selected = state.shift == shift, onClick = { viewModel.selectShift(shift) }, label = { Text(shift.name.lowercase().replaceFirstChar { it.uppercase() }) }, enabled = !state.saving && state.saved == null)
                     }
@@ -84,7 +86,7 @@ fun EntryScreen(
     if (state.duplicate || state.message != null) {
         AlertDialog(onDismissRequest = viewModel::dismissError,
             title = { Text(if (state.duplicate) "Entry already exists" else "Entry unavailable") },
-            text = { Text(if (state.duplicate) "An entry already exists for ${state.date}, ${state.shift.name.lowercase()}. Edit it in History, or choose another date or shift." else state.message.orEmpty()) },
+            text = { Text(if (state.duplicate) "An entry already exists for ${state.date}${state.shift?.let { ", ${it.name.lowercase()}" }.orEmpty()}. Edit it in History, or choose another date or shift." else state.message.orEmpty()) },
             confirmButton = { TextButton(onClick = viewModel::dismissError) { Text("OK") } })
     }
 }

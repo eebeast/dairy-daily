@@ -23,7 +23,8 @@ data class SummaryUiState(
     val previous: MilkSummary = MilkSummary(),
     val entries: List<MilkEntry> = emptyList(),
     val loading: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val through: LocalDate = period.end
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,11 +37,15 @@ class SummaryViewModel @Inject constructor(
     private val today get() = LocalDate.now(clock)
     private val selection = MutableStateFlow(SummaryPeriod(YearMonth.from(today), today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))))
     val state = selection.flatMapLatest { period ->
+        val cutoff = today
         combine(
             repository.getEntriesByDateRange(period.start, period.end),
-            summaries.range(period.start, period.end),
+            summaries.range(period.start, period.end, cutoff),
             summaries.monthly(period.month.minusMonths(1))
-        ) { entries, summary, previous -> SummaryUiState(period, summary, previous, entries, loading = false) }
+        ) { entries, summary, previous ->
+            SummaryUiState(period, summary, previous,
+                entries.filter { it.date <= cutoff }, loading = false, through = minOf(period.end, cutoff))
+        }
             .onStart { emit(SummaryUiState(period)) }
             .catch { emit(SummaryUiState(period, loading = false, error = "Could not load summary. Please retry.")) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SummaryUiState(selection.value))

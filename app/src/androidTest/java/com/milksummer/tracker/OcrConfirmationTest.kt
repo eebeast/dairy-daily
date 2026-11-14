@@ -54,7 +54,9 @@ class OcrConfirmationTest {
     }
 
     @Test fun extractedValuesRemainEditableAndCorrectedValuesAreSaved() {
-        show(ParsedSlip(5.2, 6.8, 8.8, 38.5, 280.2))
+        show(ParsedSlip(5.2, 6.8, 8.8, 38.5, 280.2, Shift.EVENING))
+        compose.onNodeWithText("Evening").performScrollTo().assertIsSelected()
+        compose.onNodeWithText("Morning").performClick()
         compose.onNodeWithText("FAT (%)").performScrollTo().assert(
             SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("6.8")))
         compose.onNodeWithText("FAT (%)").performTextReplacement("6.5")
@@ -83,6 +85,16 @@ class OcrConfirmationTest {
         compose.onNodeWithText("SNF (%)").performScrollTo().performTextInput("8.8")
         compose.onNodeWithText("Confirm and save").performScrollTo().performClick()
         compose.waitUntil(5000) { viewModel.state.value.saved != null }
-        assertNull(runBlocking { repository.getEntry(LocalDate.now(clock), Shift.MORNING) }!!.slipTotal)
+        assertNull(viewModel.state.value.saved!!.slipTotal)
+        assertNull(viewModel.state.value.saved!!.shift)
+    }
+
+    @Test fun userCanClearExtractedShiftBeforeSaving() {
+        show(ParsedSlip(5.2, 6.5, 8.8, 38.5, 200.2, Shift.MORNING))
+        compose.onNodeWithText("Morning").performScrollTo().assertIsSelected()
+        compose.onNodeWithText("No shift").performClick().assertIsSelected()
+        compose.onNodeWithText("Confirm and save").performScrollTo().performClick()
+        compose.waitUntil(5000) { viewModel.state.value.saved != null }
+        assertNull(viewModel.state.value.saved!!.shift)
     }
 }

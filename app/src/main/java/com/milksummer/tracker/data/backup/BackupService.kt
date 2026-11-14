@@ -44,7 +44,9 @@ class BackupService internal constructor(
             val dao = database.milkEntryDao()
             var count = 0
             data.entries.forEach { entry ->
-                if (dao.getByDateAndShift(entry.date, entry.shift) == null) {
+                val sameIdentity = dao.getByPortableId(entry.portableId)
+                val sameShift = entry.shift?.let { dao.getByDateAndShift(entry.date, it) }
+                if (sameIdentity == null && sameShift == null) {
                     dao.insert(entry.copy(id = 0, total = entry.quantity * entry.rate).toEntity())
                     count++
                 }

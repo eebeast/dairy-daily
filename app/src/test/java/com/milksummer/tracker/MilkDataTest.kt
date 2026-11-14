@@ -13,6 +13,9 @@ class MilkDataTest {
         val entry = sampleEntry().copy(id = 9, slipTotal = 201.0, createdAt = 1234, updatedAt = 5678)
         assertEquals(entry, entry.toEntity().toDomain())
         assertNull(sampleEntry().toEntity().toDomain().slipTotal)
+        val withoutShift = entry.copy(shift = null)
+        assertEquals(withoutShift, withoutShift.toEntity().toDomain())
+        assertEquals(entry.portableId, withoutShift.toEntity().toDomain().portableId)
         assertEquals(200.20, entry.total, 0.000001)
     }
 
@@ -22,6 +25,7 @@ class MilkDataTest {
         assertEquals("2024-02-29", converters.dateToString(date))
         assertEquals(date, converters.stringToDate(converters.dateToString(date)))
         Shift.entries.forEach { assertEquals(it, converters.stringToShift(converters.shiftToString(it))) }
+        assertNull(converters.stringToShift(converters.shiftToString(null)))
     }
 
     @Test fun completeMonthAggregatesAndCountsNoMissedDays() {

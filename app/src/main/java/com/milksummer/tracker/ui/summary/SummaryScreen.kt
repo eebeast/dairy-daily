@@ -15,7 +15,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.milksummer.tracker.domain.model.*
 import com.milksummer.tracker.ui.*
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 @Composable
 fun SummaryScreen(onDay: (LocalDate) -> Unit, viewModel: SummaryViewModel = hiltViewModel()) {
@@ -27,8 +26,8 @@ fun SummaryScreen(onDay: (LocalDate) -> Unit, viewModel: SummaryViewModel = hilt
         onDispose { lifecycle.lifecycle.removeObserver(observer) }
     }
     var compare by remember(state.period) { mutableStateOf(false) }
-    val days = remember(state.period) {
-        (0..ChronoUnit.DAYS.between(state.period.start, state.period.end)).map { state.period.start.plusDays(it) }
+    val days = remember(state.entries, state.period, state.through) {
+        state.entries.filter { it.date in state.period.start..state.through }.groupBy { it.date }.toSortedMap()
     }
     LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
         item { Text("Summary", style = MaterialTheme.typography.headlineMedium) }
@@ -53,17 +52,18 @@ fun SummaryScreen(onDay: (LocalDate) -> Unit, viewModel: SummaryViewModel = hilt
                 }
             }
             item { Text("Daily breakdown", style = MaterialTheme.typography.titleLarge) }
-            items(days, key = { it.toString() }) { day ->
-                val entries = state.entries.filter { it.date == day }
+            if (days.isEmpty()) item { Text("No milk sales recorded for this period.") }
+            items(days.keys.toList(), key = { it.toString() }) { day ->
+                val entries = days.getValue(day)
                 Card(Modifier.fillMaxWidth().clickable { onDay(day) }) {
                     Column(Modifier.padding(16.dp)) {
                         Text(day.toString(), style = MaterialTheme.typography.titleMedium)
                         Text("${decimal(entries.sumOf { it.quantity })} L · ${money(entries.sumOf { it.total })}")
-                        Text(when {
-                            day > LocalDate.now() -> "Upcoming"
-                            entries.size == 2 -> "Both shifts recorded"
-                            else -> "${2 - entries.size} shift(s) missing"
-                        })
+                        if (entries.none { it.shift == null }) {
+                            val knownShifts = entries.mapNotNull { it.shift }.toSet()
+                            Text(if (knownShifts.containsAll(Shift.entries)) "Both shifts recorded"
+                                else "${Shift.entries.size - knownShifts.size} shift(s) missing")
+                        }
                     }
                 }
             }

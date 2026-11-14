@@ -12,8 +12,8 @@ class MilkEntryConverters {
     fun stringToDate(value: String): LocalDate = LocalDate.parse(value)
 
     @TypeConverter
-    fun shiftToString(shift: Shift): String = shift.name
+    fun shiftToString(shift: Shift?): String? = shift?.name
 
     @TypeConverter
-    fun stringToShift(value: String): Shift = Shift.valueOf(value)
+    fun stringToShift(value: String?): Shift? = value?.let(Shift::valueOf)
 }

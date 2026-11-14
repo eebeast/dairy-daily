@@ -1,5 +1,38 @@
 # Backup and restore verification
 
+## Optional-shift compatibility (2026-10-31)
+
+The final Java 21 combined build passed all 37 JVM tests and 41 instrumented
+tests, with zero failures, errors, or skips, on the disposable API 37
+`MilkSummerVerify` emulator with airplane mode enabled. The instrumented set
+includes 12 `BackupDataTest` cases, three `BackupScreenTest` cases, reminder
+settings coverage, and the offline scan-to-restore integration flow.
+
+- Production codec reads the documented version 1 and version 2 JSON fixtures
+  from `app/src/androidTest/assets/`.
+- Version 2 round trips preserve null shifts, portable UUIDs, all sale values,
+  optional slip totals, and timestamps. Version 1 retains required known shifts.
+- Missing/invalid shifts, missing/invalid UUIDs, duplicate UUIDs and known
+  date/shift pairs, malformed/unsupported files, invalid numbers and dates,
+  inconsistent totals, and size/count limits are checked before import.
+- Two distinct sales without shifts on one date survive export and restore.
+  Repeating restore imports zero, including after a local sale's values and
+  shift are edited. Known date/shift collisions with different identities keep
+  the local record. Re-decoding and restoring a legacy file skips existing pairs.
+- Forced insert failure rolls back the import; settings failure reports committed
+  entries and a retry skips them. Preview, cancellation, import counts, duplicate
+  taps, and output-close failure remain covered.
+- `OptionalShiftFlowTest` recognizes a generated Morning slip and a slip with
+  no shift, confirms both through the real form, verifies 10.00 L / ₹382.60 on
+  Home and Summary, and restores both into another empty database with identical
+  fields/identities. Repeating restore reports two skipped entries.
+
+The compatibility policy and example links are in [backup format](backup-format.md).
+New exports require an app that reads version 2; old version 1 exports remain
+importable. The active OpenSpec change passed strict validation. Full commands,
+migration/UI evidence, and the generated-image/stream-I/O scope of the offline
+integration check are in [verification notes](verification.md).
+
 ## Automated checks
 
 On 2026-10-28, APK assembly and the 32 existing JVM tests passed using Java 21

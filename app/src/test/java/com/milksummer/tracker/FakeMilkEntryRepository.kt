@@ -12,7 +12,8 @@ class FakeMilkEntryRepository : MilkEntryRepository {
     var failWithDuplicate = false
 
     override suspend fun saveEntry(entry: MilkEntry): MilkEntry {
-        if (failWithDuplicate || entries.value.any { it.date == entry.date && it.shift == entry.shift }) {
+        if (failWithDuplicate || entries.value.any { it.portableId == entry.portableId ||
+                (entry.shift != null && it.date == entry.date && it.shift == entry.shift) }) {
             throw DuplicateEntryException()
         }
         val saved = entry.copy(id = (entries.value.maxOfOrNull { it.id } ?: 0) + 1)
@@ -41,5 +42,5 @@ class FakeMilkEntryRepository : MilkEntryRepository {
 
 fun sampleEntry(
     date: LocalDate = LocalDate.of(2026, 10, 1),
-    shift: Shift = Shift.MORNING
+    shift: Shift? = Shift.MORNING
 ) = MilkEntry(date, shift, quantity = 5.2, fat = 6.5, snf = 8.8, rate = 38.50)

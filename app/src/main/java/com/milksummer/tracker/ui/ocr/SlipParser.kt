@@ -1,13 +1,15 @@
 package com.milksummer.tracker.ui.ocr
 
 import com.google.mlkit.vision.text.Text
+import com.milksummer.tracker.domain.model.Shift
 
 data class ParsedSlip(
     val quantity: Double? = null,
     val fat: Double? = null,
     val snf: Double? = null,
     val rate: Double? = null,
-    val total: Double? = null
+    val total: Double? = null,
+    val shift: Shift? = null
 ) {
     val isEmpty: Boolean get() = listOf(quantity, fat, snf, rate, total).all { it == null }
 }
@@ -48,7 +50,10 @@ object SlipParser {
                 value?.let(::parseNumber)?.let { values.putIfAbsent(name, it) }
             }
         }
-        return ParsedSlip(values["quantity"], values["fat"], values["snf"], values["rate"], values["total"])
+        val shifts = Shift.entries.filter { shift ->
+            Regex("\\b${shift.name}\\b", RegexOption.IGNORE_CASE).containsMatchIn(normalized)
+        }
+        return ParsedSlip(values["quantity"], values["fat"], values["snf"], values["rate"], values["total"], shifts.singleOrNull())
     }
 
     private fun parseNumber(value: String): Double? {

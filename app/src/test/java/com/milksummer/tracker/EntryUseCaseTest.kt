@@ -13,6 +13,27 @@ class EntryUseCaseTest {
     private val validate = ValidateEntryUseCase()
     private val clock = Clock.fixed(Instant.parse("2026-10-24T10:00:00Z"), ZoneOffset.UTC)
 
+    @Test fun absentShiftsCoexistAndEditingPreservesIdentity() = runBlocking {
+        val repo = FakeMilkEntryRepository()
+        val save = SaveEntryUseCase(repo, validate, clock)
+        val first = (save(sampleEntry(shift = null)) as SaveEntryResult.Success).entry
+        val second = (save(sampleEntry(shift = null)) as SaveEntryResult.Success).entry
+        save(sampleEntry())
+        save(sampleEntry(shift = Shift.EVENING))
+        assertEquals(4, repo.entries.value.size)
+        assertNotEquals(first.portableId, second.portableId)
+        assertEquals(SaveEntryResult.Duplicate, save(first.copy(shift = Shift.MORNING)))
+        assertNull(repo.getEntry(first.id)!!.shift)
+        val morning = repo.entries.value.single { it.shift == Shift.MORNING }
+        val cleared = (save(morning.copy(shift = null, portableId = "ignored")) as SaveEntryResult.Success).entry
+        assertEquals(morning.portableId, cleared.portableId)
+        assertNull(cleared.shift)
+        val assigned = (save(first.copy(shift = Shift.MORNING)) as SaveEntryResult.Success).entry
+        assertEquals(first.id, assigned.id)
+        assertEquals(first.portableId, assigned.portableId)
+        assertEquals(4, repo.entries.value.size)
+    }
+
     @Test fun zeroAndNegativeQuantityAndRateAreRejected() {
         listOf(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY).forEach { invalid ->
             assertTrue(validate(sampleEntry().copy(quantity = invalid)).errors.containsKey("quantity"))

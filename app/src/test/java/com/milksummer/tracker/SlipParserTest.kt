@@ -1,11 +1,21 @@
 package com.milksummer.tracker
 
 import com.milksummer.tracker.domain.model.compareSlip
+import com.milksummer.tracker.domain.model.Shift
 import com.milksummer.tracker.ui.ocr.*
 import org.junit.Assert.*
 import org.junit.Test
 
 class SlipParserTest {
+    @Test fun extractsOnlyUnambiguousWholeWordShifts() {
+        assertEquals(Shift.MORNING, SlipParser.parse("Shift: mOrNiNg\nQty 5.2").shift)
+        assertEquals(Shift.EVENING, SlipParser.parse("EVENING\nQty 5.2").shift)
+        listOf("Qty 5.2", "M 07:00 AM Qty 5.2", "E 07:00 PM Qty 5.2", "Morning Evening Qty 5.2",
+            "Goodmorning Qty 5.2", "Shift NIGHT Qty 5.2", "Mornington Qty 5.2").forEach {
+            assertNull(it, SlipParser.parse(it).shift)
+        }
+        assertTrue(SlipParser.parse("Shift: Morning").isEmpty)
+    }
     @Test fun cleanSlipExtractsAllValues() {
         assertEquals(ParsedSlip(5.2, 6.5, 8.8, 38.5, 200.2), SlipParser.parse("Qty: 5.2\nFAT: 6.5\nSNF: 8.8\nRate: 38.50\nTotal: 200.20"))
     }

@@ -1,0 +1,25 @@
+{
+  "format": "com.milksummer.tracker.backup",
+  "version": 2,
+  "createdAt": "2026-10-28T10:00:00Z",
+  "reminders": {
+    "enabled": false,
+    "morning": "06:30",
+    "evening": "18:45"
+  },
+  "entries": [
+    {
+      "date": "2026-10-26",
+      "shift": null,
+      "quantity": 5.2,
+      "fat": 6.5,
+      "snf": 8.8,
+      "rate": 38.5,
+      "total": 200.2,
+      "slipTotal": 200.7,
+      "createdAt": 100,
+      "updatedAt": 200,
+      "portableId": "c32af08f-6997-4c6b-91ae-30ee70a2efda"
+    }
+  ]
+}

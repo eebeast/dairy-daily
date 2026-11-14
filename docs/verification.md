@@ -1,5 +1,47 @@
 # Verification — milk-sale-tracker
 
+## Optional shifts and sales-only views (2026-10-31)
+
+Change: `simplify-sales-views-and-optional-shifts`. Debug assembly and all 37
+JVM tests passed with Java 21. The final combined Gradle command also passed
+all 41 instrumented tests in 47 seconds, with zero failures, errors, or skips.
+The device was a new disposable API 37 `MilkSummerVerify` emulator on port
+5556, using an AVD directory under `/tmp`. Airplane mode was enabled for the
+final suite. The existing user AVD and its sales were not used.
+
+```sh
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+ANDROID_SERIAL=emulator-5556 ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:connectedDebugAndroidTest
+openspec validate simplify-sales-views-and-optional-shifts --strict --json
+openspec validate --specs --strict --json
+```
+
+Both strict OpenSpec checks passed. The active change's deltas remain separate
+from the main specs until the sync/archive workflow is requested.
+
+| Area | Evidence |
+| --- | --- |
+| Optional storage and identity | `MilkDataTest`, `EntryUseCaseTest`, and `MilkDatabaseTest`: nullable mapping, distinct absent-shift sales, known-shift duplicate protection, clearing/assigning shifts, and stable identities through edits. |
+| Upgrade | `MilkMigrationTest`: populated on-disk schema 1 upgraded through the registered migration, with exact IDs, dates, known shifts, numeric values, optional slip totals, timestamps, unique UUIDs, constraints, and successful reopening. Schema 2 is exported under `app/schemas/`. |
+| Home and details | `LedgerScreenTest`: one empty state, Add Entry/Scan Slip, mixed known/absent-shift rows, correct totals, no empty shift cards, separate row actions, deletion and uncertainty-aware details. |
+| Forms | `EntryViewModelTest`, `EntryFormTest`, and `OcrConfirmationTest`: blank generic default, explicit reminder hint, optional correction/clearing, conflict rejection, and save with no shift. |
+| Slip parsing | `SlipParserTest`: whole-word Morning/Evening, case handling, absent/conflicting text, unsupported abbreviations, and unchanged numeric extraction. A shift label alone is insufficient sale data. |
+| Scan state | `EntryViewModelTest`: scan arriving before initialization, explicit null fallback on a new scan, and preserving user corrections for the same scan. |
+| Summary | `SummaryScreenTest` and `SummaryUseCaseTest`: sparse weeks/months, one row per sale date, ascending dates, empty/future periods, cutoff consistency, last-sale removal, navigation, unknown-shift totals, and both known shifts required for completeness. |
+| Reminders | `OptionalShiftReminderTest`: actual receiver broadcasts post both notifications for an unknown-shift sale, suppress only Morning after a known morning sale, and suppress both when both known shifts exist. Broadcast completion and asynchronous notification posting are awaited. Created records are removed afterward. |
+| Backup | Version 1/2 codec, restore, UI, and fixture coverage are detailed in `docs/backup-verification.md`. |
+
+`OptionalShiftFlowTest` exercised the complete offline flow with generated
+JPEG slip images supplied at the camera output boundary. The bundled ML Kit
+model recognized Morning on a 5.2 L slip and left shift blank on a 4.8 L slip.
+Both were reviewed and saved through the production confirmation form and Room
+repository. Home and Summary showed 10.00 L and ₹382.60, and the breakdown
+contained only the sale date. Version 2 export/preview and restore into another
+empty database preserved every sale field and portable identity; repeating
+restore imported zero records. These checks use generated images and byte-stream
+backup I/O; native camera and system-picker verification from earlier runs is
+recorded below.
+
 ## Latest verification (2026-10-26)
 
 - The full existing instrumented suite ran directly on `emulator-5554`: all

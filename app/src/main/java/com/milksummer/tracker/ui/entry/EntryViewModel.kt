@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 data class EntryUiState(
     val id: Long = 0,
     val date: LocalDate = LocalDate.now(),
-    val shift: Shift = Shift.MORNING,
+    val shift: Shift? = null,
     val quantity: String = "",
     val fat: String = "",
     val snf: String = "",
@@ -54,6 +54,7 @@ class EntryViewModel @Inject constructor(
     private val mutableState = MutableStateFlow(EntryUiState(date = LocalDate.now(clock)))
     val state = mutableState.asStateFlow()
     private var lastScanId: String? = null
+    private var pendingScan: Pair<String, com.milksummer.tracker.ui.ocr.ParsedSlip>? = null
 
     init {
         viewModelScope.launch {
@@ -69,10 +70,12 @@ class EntryViewModel @Inject constructor(
                         rate = entry.rate.toString(), slipTotal = entry.slipTotal?.toString().orEmpty(), loading = false
                     )
                 } else {
-                    val today = mutableState.value.date
                     val requested = savedStateHandle.get<String>("shift")?.let { value -> Shift.entries.find { it.name == value } }
-                    val next = requested ?: if (repository.getEntry(today, Shift.MORNING) == null) Shift.MORNING else Shift.EVENING
-                    mutableState.update { it.copy(shift = next, loading = false) }
+                    mutableState.update { it.copy(shift = requested, loading = false) }
+                }
+                pendingScan?.let { (scanId, fields) ->
+                    pendingScan = null
+                    prefillScan(scanId, fields)
                 }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
@@ -96,7 +99,7 @@ class EntryViewModel @Inject constructor(
     }
 
     fun selectDate(date: LocalDate) { mutableState.update { it.copy(date = date) } }
-    fun selectShift(shift: Shift) { mutableState.update { it.copy(shift = shift) } }
+    fun selectShift(shift: Shift?) { mutableState.update { it.copy(shift = shift) } }
     fun dismissError() { mutableState.update { it.copy(duplicate = false, message = null) } }
 
     fun prefill(quantity: Double?, fat: Double?, snf: Double?, rate: Double?, total: Double?) {
@@ -108,9 +111,14 @@ class EntryViewModel @Inject constructor(
     }
 
     fun prefillScan(scanId: String, fields: com.milksummer.tracker.ui.ocr.ParsedSlip) {
+        if (mutableState.value.loading) {
+            pendingScan = scanId to fields
+            return
+        }
         if (lastScanId == scanId) return
         lastScanId = scanId
         prefill(fields.quantity, fields.fat, fields.snf, fields.rate, fields.total)
+        mutableState.update { it.copy(shift = fields.shift) }
     }
 
     fun save() {
