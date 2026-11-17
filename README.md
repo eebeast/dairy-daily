@@ -2,20 +2,29 @@
 
 An offline Android milk sale tracker built with Kotlin, Jetpack Compose, Room,
 Hilt, and bundled ML Kit text recognition. Requires Android 8.0 (API 26) or later.
+The app stores sales and reminder preferences on the device; it does not require
+an account or network connection for everyday use.
 
-## Run
+## Get started
 
-Open this folder in Android Studio, select Java 21 as the Gradle JDK, sync, and
-run the `app` configuration on an emulator or Android device.
-
-On this Mac, terminal builds use:
+Clone the repository:
 
 ```sh
-export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+git clone https://github.com/eebeast/dairy-daily.git
+cd dairy-daily
+```
+
+Use Java 21 and Android SDK 35. Open the project in Android Studio, select Java
+21 as the Gradle JDK, sync, and run the `app` configuration on an emulator or an
+Android 8.0+ device.
+
+To build from a terminal, set `JAVA_HOME` to your Java 21 installation and run:
+
+```sh
 ./gradlew :app:assembleDebug :app:testDebugUnitTest
 ```
 
-With an emulator or USB debugging device running:
+Android instrumented tests need an unlocked emulator or USB debugging device:
 
 ```sh
 ./gradlew :app:connectedDebugAndroidTest
@@ -66,8 +75,25 @@ See the [backup format](docs/backup-format.md) for validation and compatibility.
 Camera permission is requested when scanning. Notification permission is
 optional. If precise alarms are not allowed, reminders use inexact alarms.
 
-Data stays in the local Room database until you explicitly export it. The full
-suite results are recorded in the verification notes. See
-[verification notes](docs/verification.md) for the original tracker checks and
-OCR coverage limits, and [backup verification](docs/backup-verification.md) for
-the completed backup and restore checks.
+## Project layout
+
+- `app/src/main/java/com/milksummer/tracker/domain/` contains sale models and
+  business rules.
+- `app/src/main/java/com/milksummer/tracker/data/` contains Room persistence,
+  repositories, and backup handling.
+- `app/src/main/java/com/milksummer/tracker/ui/` contains Compose screens and
+  their ViewModels.
+- `app/src/test/` contains JVM tests; `app/src/androidTest/` contains Android
+  tests and backup fixtures.
+- `openspec/specs/` and `openspec/changes/` contain product specifications and
+  change plans.
+
+See [verification notes](docs/verification.md) for the recorded build, device,
+and OCR coverage, and [backup verification](docs/backup-verification.md) for
+backup and restore checks. The [backup format](docs/backup-format.md) describes
+the portable JSON format and compatibility rules.
+
+## License
+
+MilkSummer is licensed under the MIT License. See [LICENSE](LICENSE) for the
+full text.
